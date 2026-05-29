@@ -1,0 +1,14 @@
+# ── External dependencies (clone manually or use `git submodule update --init`) ─
+#
+# These are large upstream repos; they are NOT vendored in this scaffold.
+# See README.md for full build instructions.
+
+[submodule "ros2_ws/src/rplidar_ros"]
+	path = ros2_ws/src/rplidar_ros
+	url  = https://github.com/Slamtec/rplidar_ros.git
+	branch = ros2
+
+[submodule "ros2_ws/src/orb_slam3_ros2"]
+	path = ros2_ws/src/orb_slam3_ros2
+	url  = https://github.com/zang09/ORB_SLAM3_ROS2.git
+	branch = humble

@@ -1,0 +1,73 @@
+# MIT License – see LICENSE in repo root
+# ─────────────────────────────────────────────────────────────
+# RTAB-Map parameters – monocular camera + 2D lidar
+# Tuned for Jetson Orin Nano (embedded, resource-constrained)
+# ─────────────────────────────────────────────────────────────
+
+rtabmap:
+  ros__parameters:
+    # ── Frame IDs ──
+    frame_id: "base_link"
+    odom_frame_id: "odom"
+    map_frame_id: "map"
+
+    # ── Subscriptions ──
+    subscribe_depth: false
+    subscribe_rgb: true
+    subscribe_scan: true
+    subscribe_odom: true
+    approx_sync: true              # Use approximate time sync (camera + lidar clocks may drift)
+    queue_size: 200                # Increased from 60 to handle frame rate mismatches
+    sync_queue_size: 200           # Increased for better synchronization buffer
+
+    # ── Input topics (remapped in launch file) ──
+    # rgb/image:       /camera/image_raw
+    # rgb/camera_info: /camera/camera_info
+    # scan:            /scan
+    # odom:            /odom
+
+    # ── QoS settings (BEST_EFFORT to reduce queue pressure) ──
+    qos_image: 1        # BEST_EFFORT
+    qos_camera_info: 1  # BEST_EFFORT
+    qos_scan: 1         # BEST_EFFORT
+    qos_odom: 1         # BEST_EFFORT
+
+    # ── Memory management (critical for embedded) ──
+    Mem/IncrementalMemory: "true"   # Online mapping mode
+    Mem/InitWMWithAllNodes: "false"  # Don't load full map into working memory on start
+    Mem/STMSize: "30"               # Short-term memory size (number of locations)
+
+    # ── Map update thresholds ──
+    RGBD/LinearUpdate: "0.1"        # Min 10 cm translation to create a new node
+    RGBD/AngularUpdate: "0.05"      # Min ~3° rotation to create a new node
+    RGBD/OptimizeFromGraphEnd: "false"
+
+    # ── Loop closure detection ──
+    Rtabmap/DetectionRate: "1.0"    # Hz – lower to 0.5 if CPU-bound on Jetson
+    Rtabmap/TimeThr: "0"            # 0 = no time limit on processing (set to 700 ms if needed)
+    Kp/MaxFeatures: "400"           # Visual words per image (reduce for speed)
+    Kp/DetectorStrategy: "6"        # 0=SURF, 2=ORB, 6=ORB-SLAM3 features (if available)
+
+    # ── 2D occupancy grid from lidar ──
+    Grid/FromDepth: "false"         # Use laser scan, not depth image
+    Grid/RangeMax: "5.0"            # Max lidar range for grid (metres) – indoor
+    Grid/RangeMin: "0.15"           # Min range (RPLIDAR A1 min is ~0.15 m)
+    Grid/CellSize: "0.05"           # 5 cm resolution
+    Grid/MaxGroundHeight: "0.0"     # No ground segmentation (2D lidar)
+    Grid/MaxObstacleHeight: "2.0"   # Cap obstacle height
+
+    # ── Optimizer ──
+    Optimizer/Strategy: "1"         # 0=TORO, 1=g2o, 2=GTSAM
+    Optimizer/Iterations: "10"
+    Optimizer/Slam2D: "true"        # Optimize in 2D only (mono + 2D lidar)
+
+    # ── Visual odometry (disabled – using ORB-SLAM3 external odom) ──
+    Odom/Strategy: "0"              # Not used; external /odom from ORB-SLAM3
+    Vis/MinInliers: "15"
+
+    # ── Database ──
+    Rtabmap/DatabasePath: "/tmp/rtabmap.db"   # Change for persistence
+    # Rtabmap/DatabasePath: "~/.ros/rtabmap.db"
+
+    # ── Logging ──
+    Rtabmap/PublishRAMUsage: "true"  # Helpful for monitoring on Jetson

@@ -1,0 +1,32 @@
+# MIT License – see LICENSE in repo root
+# ─────────────────────────────────────────────────────────────
+# rplidar_ros parameters – RPLIDAR A1 / R1 on Jetson Orin Nano
+# Serial port: /dev/ttyUSB0, 115200 baud
+# ─────────────────────────────────────────────────────────────
+
+rplidar_node:
+  ros__parameters:
+    # ── Serial port ──
+    serial_port: "/dev/ttyUSB0"
+    serial_baudrate: 115200
+
+    # ── Frame ──
+    frame_id: "laser"
+
+    # ── Scan mode ──
+    # For RPLIDAR A1: "Standard" (default) or "Express"
+    # For RPLIDAR A2/A3: "Boost" or "Sensitivity"
+    scan_mode: ""                # empty = use default mode
+
+    # ── Topic ──
+    topic_name: "/scan"
+
+    # ── Orientation ──
+    # Set to true if the lidar is mounted upside-down
+    inverted: false
+    angle_compensate: true
+
+    # ── Scan range filtering (radians) ──
+    # Full 360° by default; restrict if parts of the robot body are visible
+    # scan_angle_min: -3.14159
+    # scan_angle_max:  3.14159

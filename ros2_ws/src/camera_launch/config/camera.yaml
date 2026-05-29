@@ -1,0 +1,40 @@
+# MIT License – see LICENSE in repo root
+# ─────────────────────────────────────────────────────────────
+# v4l2_camera parameters – tuned for Jetson Orin Nano
+# USB monocular camera at /dev/video0, 640×480 @ 15 fps
+# ─────────────────────────────────────────────────────────────
+
+/camera/v4l2_camera_node:
+  ros__parameters:
+    # ── Device ──
+    video_device: "/dev/video0"
+
+    # ── Resolution & frame rate (reduced for Jetson) ──
+    image_size:
+      - 640        # width
+      - 480        # height
+    time_per_frame:
+      - 1          # numerator
+      - 15         # denominator  → 15 fps
+
+    # ── Pixel format ──
+    # YUYV is widely supported; MJPG can offload decode to USB camera
+    pixel_format: "YUYV"
+
+    # ── Camera info ──
+    # Point to a calibration YAML produced by `ros2 run camera_calibration cameracalibrator`
+    # camera_info_url: "file:///home/<user>/.ros/camera_info/usb_cam.yaml"
+    camera_info_url: ""
+
+    # ── Topic remapping (handled in launch, but defaults listed here) ──
+    # image_raw  → /camera/image_raw
+    # camera_info → /camera/camera_info
+
+    # ── Auto-exposure / white-balance (camera-dependent) ──
+    # Uncomment and adjust if your camera supports these V4L2 controls:
+    # brightness: 128
+    # contrast: 32
+    # saturation: 64
+    # white_balance_temperature_auto: true
+    # exposure_auto: 3          # 1=manual, 3=aperture-priority
+    # focus_auto: true

@@ -1,0 +1,31 @@
+# Colcon build artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ORB-SLAM3 vocabulary (large binary – user downloads separately)
+ros2_ws/src/orb_slam3_wrapper/vocabulary/
+
+# Bag recordings
+bags/
+*.db3
+*.mcap
+
+# Core dumps
+core

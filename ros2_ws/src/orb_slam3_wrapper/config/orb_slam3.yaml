@@ -1,0 +1,52 @@
+# MIT License – see LICENSE in repo root
+# ─────────────────────────────────────────────────────────────
+# ORB-SLAM3 monocular parameters – Jetson Orin Nano
+#
+# These parameters are passed to the ORB-SLAM3 ROS 2 wrapper node.
+# Adjust vocabulary_file and camera intrinsics for your setup.
+# ─────────────────────────────────────────────────────────────
+
+orb_slam3_mono_node:
+  ros__parameters:
+    # ── Vocabulary file (REQUIRED – update this path) ──
+    # Download or build ORB-SLAM3, then point to the uncompressed vocabulary:
+    vocabulary_file: "/home/USER/ORB_SLAM3/Vocabulary/ORBvoc.txt"
+
+    # ── Sensor type ──
+    sensor_type: "monocular"     # monocular | stereo | rgbd | imu-monocular
+
+    # ── Camera intrinsics (640×480 example – recalibrate for your camera!) ──
+    # Use `ros2 run camera_calibration cameracalibrator` to get accurate values.
+    camera:
+      fx: 500.0
+      fy: 500.0
+      cx: 320.0
+      cy: 240.0
+      k1: 0.0
+      k2: 0.0
+      p1: 0.0
+      p2: 0.0
+      k3: 0.0
+      width: 640
+      height: 480
+      fps: 15
+
+    # ── ORB feature extraction ──
+    n_features: 800            # 500 if CPU-bound; 1200 for better accuracy
+    scale_factor: 1.2          # Image pyramid scale factor
+    n_levels: 8                # Pyramid levels (reduce to 6 to save compute)
+    ini_th_fast: 20            # FAST threshold (initial)
+    min_th_fast: 7             # FAST threshold (minimum fallback)
+
+    # ── Viewer ──
+    use_viewer: false           # Disable Pangolin viewer on headless Jetson
+
+    # ── Publishing ──
+    publish_tf: true            # Publish odom → base_link TF
+    publish_odom: true          # Publish /odom topic
+    odom_frame_id: "odom"
+    child_frame_id: "base_link"
+    map_frame_id: "map"
+
+    # ── Input topic ──
+    image_topic: "/camera/image_raw"
