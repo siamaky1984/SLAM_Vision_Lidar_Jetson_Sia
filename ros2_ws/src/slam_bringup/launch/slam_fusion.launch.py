@@ -9,7 +9,7 @@ Usage:
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
@@ -34,6 +34,10 @@ def generate_launch_description():
         'use_rviz', default_value='false',
         description='Launch RViz alongside the pipeline')
 
+    use_orb_slam3_arg = DeclareLaunchArgument(
+        'use_orb_slam3', default_value='false',
+        description='Launch ORB-SLAM3 to provide /odom')
+
     # ── Sub-launches ──
 
     # 1. Static TF (base_link → camera_link, base_link → laser)
@@ -57,14 +61,34 @@ def generate_launch_description():
         }.items(),
     )
 
-    # 2.5. Static odom → base_link transform (placeholder for when ORB-SLAM3 is disabled)
+    # 2.5. ICP Odometry from lidar scans (when ORB-SLAM3 is disabled)
     from launch_ros.actions import Node
-    static_odom_tf = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='odom_to_base_link_tf',
-        arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_link'],
+    
+    # Use RTAB-Map's ICP odometry to track motion from laser scans
+    # This publishes /odom topic and odom→base_link TF
+    icp_odom_node = Node(
+        package='rtabmap_odom',
+        executable='icp_odometry',
+        name='icp_odometry',
+        parameters=[{
+            'frame_id': 'base_link',
+            'odom_frame_id': 'odom',
+            'publish_tf': True,
+            'wait_for_transform': 0.2,
+            'Icp/PointToPlane': 'true',
+            'Icp/VoxelSize': '0.05',
+            'Icp/MaxCorrespondenceDistance': '0.1',
+            'Icp/PM': 'true',  # Use Point Matcher
+            'Icp/PMOutlierRatio': '0.95',
+            'Odom/Strategy': '0',  # Frame-to-frame
+            'Odom/ResetCountdown': '1',
+            'Odom/ScanKeyFrameThr': '0.9',
+        }],
+        remappings=[
+            ('scan', '/scan'),
+        ],
         output='screen',
+        condition=UnlessCondition(LaunchConfiguration('use_orb_slam3')),
     )
 
     # 3. RPLIDAR
@@ -81,13 +105,14 @@ def generate_launch_description():
     )
 
     # 4. ORB-SLAM3 monocular (visual odometry → /odom)
-    # orb_slam3_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         PathJoinSubstitution([
-    #             FindPackageShare('orb_slam3_wrapper'), 'launch', 'orb_slam3_mono.launch.py'
-    #         ])
-    #     ),
-    # )
+    orb_slam3_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('orb_slam3_wrapper'), 'launch', 'orb_slam3_mono.launch.py'
+            ])
+        ),
+        condition=IfCondition(LaunchConfiguration('use_orb_slam3')),
+    )
 
     # 5. RTAB-Map (graph SLAM → /map)
     rtabmap_launch = IncludeLaunchDescription(
@@ -114,12 +139,13 @@ def generate_launch_description():
         lidar_serial_arg,
         lidar_baudrate_arg,
         use_rviz_arg,
+        use_orb_slam3_arg,
         # Launches (order matters for startup sequencing)
         static_tf_launch,
-        static_odom_tf,  # Static odom frame (placeholder)
+        icp_odom_node,  # Lidar-based odometry when ORB-SLAM3 disabled
         camera_launch,
         rplidar_launch,
-        # orb_slam3_launch,
+        orb_slam3_launch,
         rtabmap_launch,
         rviz_launch,
     ])

@@ -23,8 +23,8 @@
 
     # ── Camera info ──
     # Point to a calibration YAML produced by `ros2 run camera_calibration cameracalibrator`
-    # camera_info_url: "file:///home/<user>/.ros/camera_info/usb_cam.yaml"
-    camera_info_url: ""
+    # For now using default calibration - YOU SHOULD CALIBRATE YOUR CAMERA for better accuracy
+    camera_info_url: "package://camera_launch/config/default_calibration.yaml"
 
     # ── Topic remapping (handled in launch, but defaults listed here) ──
     # image_raw  → /camera/image_raw

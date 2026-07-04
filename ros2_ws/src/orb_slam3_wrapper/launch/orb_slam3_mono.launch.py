@@ -20,8 +20,8 @@ def generate_launch_description():
     config_file = os.path.join(pkg_share, 'config', 'orb_slam3.yaml')
 
     orb_slam3_node = Node(
-        # ── Adjust these two lines to match your ORB-SLAM3 ROS 2 build ──
-        package='orb_slam3_ros2',       # upstream package name
+        # zang09/ORB_SLAM3_ROS2 installs package name as "orbslam3"
+        package='orbslam3',             # upstream package name
         executable='mono',              # monocular executable
         name='orb_slam3_mono_node',
         parameters=[config_file],
