@@ -9,7 +9,7 @@ Usage:
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
@@ -36,7 +36,7 @@ def generate_launch_description():
 
     use_orb_slam3_arg = DeclareLaunchArgument(
         'use_orb_slam3', default_value='false',
-        description='Launch ORB-SLAM3 to provide /odom')
+        description='Launch ORB-SLAM3 (scale-aligned to lidar ICP odom)')
 
     # ── Sub-launches ──
 
@@ -61,7 +61,7 @@ def generate_launch_description():
         }.items(),
     )
 
-    # 2.5. ICP Odometry from lidar scans (when ORB-SLAM3 is disabled)
+    # 2.5. ICP Odometry from lidar scans (always on: metric odom input to the EKF)
     from launch_ros.actions import Node
     
     # Use RTAB-Map's ICP odometry to track motion from laser scans
@@ -73,7 +73,7 @@ def generate_launch_description():
         parameters=[{
             'frame_id': 'base_link',
             'odom_frame_id': 'odom',
-            'publish_tf': True,
+            'publish_tf': False,   # EKF owns odom→base_link
             'wait_for_transform': 0.2,
             'Icp/PointToPlane': 'true',
             'Icp/VoxelSize': '0.05',
@@ -88,7 +88,16 @@ def generate_launch_description():
             ('scan', '/scan'),
         ],
         output='screen',
-        condition=UnlessCondition(LaunchConfiguration('use_orb_slam3')),
+    )
+
+    # 2.6. EKF: fuses ICP odom (+ scaled mono VO velocity) → /odometry/filtered + odom→base_link
+    ekf_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        parameters=[PathJoinSubstitution([
+            FindPackageShare('slam_bringup'), 'config', 'ekf.yaml'])],
+        output='screen',
     )
 
     # 3. RPLIDAR
@@ -104,7 +113,7 @@ def generate_launch_description():
         }.items(),
     )
 
-    # 4. ORB-SLAM3 monocular (visual odometry → /odom)
+    # 4. ORB-SLAM3 monocular (arbitrary-scale VO → scaled velocity into the EKF; no TF)
     orb_slam3_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
@@ -142,7 +151,8 @@ def generate_launch_description():
         use_orb_slam3_arg,
         # Launches (order matters for startup sequencing)
         static_tf_launch,
-        icp_odom_node,  # Lidar-based odometry when ORB-SLAM3 disabled
+        icp_odom_node,  # Metric lidar odometry (EKF input; TF disabled)
+        ekf_node,       # Sole owner of odom→base_link
         camera_launch,
         rplidar_launch,
         orb_slam3_launch,

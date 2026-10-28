@@ -42,6 +42,8 @@ ros2 bag record \
     /camera/camera_info \
     /scan \
     /odom \
+    /orb_slam3/odom \
+    /odometry/filtered \
     /tf \
     /tf_static \
     /map

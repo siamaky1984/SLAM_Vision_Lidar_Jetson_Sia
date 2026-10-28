@@ -1,0 +1,59 @@
+# MIT License – see LICENSE in repo root
+# ─────────────────────────────────────────────────────────────
+# robot_localization EKF – fuses lidar ICP odom with scaled mono VO velocity
+#
+# This node is the SOLE publisher of odom→base_link and /odometry/filtered.
+#   odom0: /odom                          lidar ICP (metric, absolute x/y/yaw)
+#   odom1: /orb_slam3/odom_scaled_twist   mono VO body-frame velocity (metric,
+#                                         frame-agnostic; pose not used because
+#                                         ORB-SLAM3's world frame is arbitrary)
+# Config order: x y z | roll pitch yaw | vx vy vz | vroll vpitch vyaw | ax ay az
+# ─────────────────────────────────────────────────────────────
+ekf_filter_node:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: true
+    publish_tf: true
+    sensor_timeout: 0.5
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom
+
+    odom0: /odom
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+
+    odom1: /orb_slam3/odom_scaled_twist
+    odom1_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+    odom1_queue_size: 10
+    odom1_differential: false
+
+    # Mahalanobis gate: drop wild measurements (e.g. ORB-SLAM3 map reset)
+    odom1_twist_rejection_threshold: 5.0
+
+    process_noise_covariance: [0.05, 0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.05, 0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  1e-6, 0.0, 0.0, 0.0, 0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 1e-6, 0.0, 0.0, 0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 1e-6, 0.0, 0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.06, 0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0, 0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0, 1e-6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 1e-6, 0.0, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 1e-6, 0.0, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 1e-6, 0.0, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 1e-6, 0.0,
+                               0.0,  0.0,  0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1e-6]

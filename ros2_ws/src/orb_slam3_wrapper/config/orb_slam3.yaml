@@ -42,8 +42,10 @@ orb_slam3_mono_node:
     use_viewer: false           # Disable Pangolin viewer on headless Jetson
 
     # ── Publishing ──
-    publish_tf: true            # Publish odom → base_link TF
-    publish_odom: true          # Publish /odom topic
+    # Monocular scale is arbitrary, so ORB-SLAM3 must NOT own odom→base_link.
+    # Lidar ICP odometry publishes that TF; odom_scale_aligner rescales this output.
+    publish_tf: false
+    publish_odom: true          # Remapped to /orb_slam3/odom in the launch file
     odom_frame_id: "odom"
     child_frame_id: "base_link"
     map_frame_id: "map"

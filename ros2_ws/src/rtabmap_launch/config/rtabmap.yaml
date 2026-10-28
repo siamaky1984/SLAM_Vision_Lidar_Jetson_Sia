@@ -24,7 +24,7 @@ rtabmap:
     # rgb/image:       /camera/image_raw
     # rgb/camera_info: /camera/camera_info
     # scan:            /scan
-    # odom:            /odom
+    # odom:            /odometry/filtered  (EKF output)
 
     # ── QoS settings (BEST_EFFORT to reduce queue pressure) ──
     qos_image: 1        # BEST_EFFORT
@@ -62,7 +62,7 @@ rtabmap:
     Optimizer/Slam2D: "true"        # Optimize in 2D only (mono + 2D lidar)
 
     # ── Visual odometry (disabled – using ORB-SLAM3 external odom) ──
-    Odom/Strategy: "0"              # Not used; external /odom from ORB-SLAM3
+    Odom/Strategy: "0"              # Not used; external odom from the EKF (/odometry/filtered)
     Vis/MinInliers: "15"
 
     # ── Database ──

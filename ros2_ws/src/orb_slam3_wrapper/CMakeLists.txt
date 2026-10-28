@@ -4,6 +4,10 @@ project(orb_slam3_wrapper)
 
 find_package(ament_cmake REQUIRED)
 
+install(PROGRAMS scripts/odom_scale_aligner.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch
 )

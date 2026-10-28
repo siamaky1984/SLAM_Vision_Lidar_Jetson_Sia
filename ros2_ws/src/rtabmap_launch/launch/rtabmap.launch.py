@@ -20,7 +20,7 @@ def generate_launch_description():
             ('rgb/image', '/camera/image_raw'),
             ('rgb/camera_info', '/camera/camera_info'),
             ('scan', '/scan'),
-            ('odom', '/odom'),
+            ('odom', '/odometry/filtered'),
         ],
         arguments=['--delete_db_on_start'],   # Remove for persistent mapping
         output='screen',

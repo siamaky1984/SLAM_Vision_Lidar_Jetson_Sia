@@ -27,10 +27,28 @@ def generate_launch_description():
         parameters=[config_file],
         remappings=[
             ('camera/image_raw', '/camera/image_raw'),
+            # Keep the arbitrary-scale odom off /odom (owned by lidar ICP).
+            ('odom', '/orb_slam3/odom'),
+        ],
+        output='screen',
+    )
+
+    # Estimates mono scale against metric ICP odom (/odom) → /orb_slam3/odom_scaled
+    scale_aligner = Node(
+        package='orb_slam3_wrapper',
+        executable='odom_scale_aligner.py',
+        name='odom_scale_aligner',
+        remappings=[
+            ('~/visual_odom', '/orb_slam3/odom'),
+            ('~/metric_odom', '/odom'),
+            ('~/odom_scaled', '/orb_slam3/odom_scaled'),
+            ('~/scale', '/orb_slam3/scale'),
+            ('~/odom_scaled_twist', '/orb_slam3/odom_scaled_twist'),
         ],
         output='screen',
     )
 
     return LaunchDescription([
         orb_slam3_node,
+        scale_aligner,
     ])

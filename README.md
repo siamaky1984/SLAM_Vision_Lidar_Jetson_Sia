@@ -270,7 +270,7 @@ chmod +x scripts/record_bag.sh
 ./scripts/record_bag.sh          # Saves to bags/<timestamp>/
 ```
 
-Records: `/camera/image_raw`, `/camera/camera_info`, `/scan`, `/odom`, `/tf`, `/tf_static`, `/map`.
+Records: `/camera/image_raw`, `/camera/camera_info`, `/scan`, `/odom`, `/orb_slam3/odom`, `/odometry/filtered`, `/tf`, `/tf_static`, `/map`.
 
 ---
 
@@ -283,7 +283,7 @@ Displays included:
 - **LaserScan** – `/scan`
 - **Image** – `/camera/image_raw`
 - **Map** – `/map` (OccupancyGrid from RTAB-Map)
-- **Odometry** – `/odom`
+- **Odometry** – `/odometry/filtered`
 
 ---
 
@@ -296,7 +296,11 @@ Displays included:
 | `/camera/image_raw` | `sensor_msgs/Image` | v4l2_camera |
 | `/camera/camera_info` | `sensor_msgs/CameraInfo` | v4l2_camera |
 | `/scan` | `sensor_msgs/LaserScan` | rplidar_ros |
-| `/odom` | `nav_msgs/Odometry` | ORB-SLAM3 mono |
+| `/odom` | `nav_msgs/Odometry` | Lidar ICP odometry (EKF input) |
+| `/orb_slam3/odom` | `nav_msgs/Odometry` | ORB-SLAM3 mono (arbitrary scale) |
+| `/orb_slam3/odom_scaled` | `nav_msgs/Odometry` | Mono VO rescaled to metres via ICP |
+| `/orb_slam3/odom_scaled_twist` | `nav_msgs/Odometry` | Metric body-frame velocity (EKF input) |
+| `/odometry/filtered` | `nav_msgs/Odometry` | EKF fused odom (RTAB-Map input) |
 | `/map` | `nav_msgs/OccupancyGrid` | RTAB-Map |
 | `/tf`, `/tf_static` | `tf2_msgs/TFMessage` | tf_broadcasters + ORB-SLAM3 |
 
@@ -304,7 +308,7 @@ Displays included:
 
 ```
 map
- └── odom            (published by ORB-SLAM3 / rtabmap)
+ └── odom            (published by robot_localization EKF)
       └── base_link
            ├── camera_link   (static TF)
            └── laser          (static TF)
@@ -351,7 +355,7 @@ sudo jetson_clocks         # Lock clocks to max frequency
 | RPLIDAR not detected | Verify `ls /dev/ttyUSB0`; add udev rule (see below); check baud rate |
 | ORB-SLAM3 "vocabulary not found" | Update `vocabulary_file` path in `orb_slam3.yaml` |
 | ORB-SLAM3 tracking lost immediately | Ensure adequate lighting; increase `nFeatures`; check camera intrinsics |
-| RTAB-Map "no odometry received" | Verify `/odom` is published: `ros2 topic hz /odom` |
+| RTAB-Map "no odometry received" | Verify `/odometry/filtered` is published: `ros2 topic hz /odometry/filtered` (needs `/odom` from ICP) |
 | High CPU / thermal throttling | Use `sudo nvpmodel -m 0 && sudo jetson_clocks`; reduce camera resolution |
 | TF tree broken | Run `ros2 run tf2_tools view_frames` and check for missing links |
 | DDS discovery slow | Set `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and use loopback interface |
