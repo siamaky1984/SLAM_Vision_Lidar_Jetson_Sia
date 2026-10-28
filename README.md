@@ -316,6 +316,22 @@ map
 
 ---
 
+## Camera Calibration
+
+Calibrate once, then apply the result everywhere (camera_info for RTAB-Map, ORB-SLAM3 intrinsics):
+
+```bash
+ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.025 \
+  --ros-args -r image:=/camera/image_raw
+# after "Commit", take the ost.yaml it writes and run:
+python3 scripts/apply_calibration.py /path/to/ost.yaml --fps 15
+colcon build --packages-select camera_launch orb_slam3_wrapper
+```
+
+Without `camera_info.yaml` the camera launch prints a warning and publishes zero intrinsics.
+
+---
+
 ## Tuning Tips
 
 ### Camera (640×480 @ 15 fps)

@@ -22,9 +22,8 @@
     pixel_format: "YUYV"
 
     # ── Camera info ──
-    # Point to a calibration YAML produced by `ros2 run camera_calibration cameracalibrator`
-    # For now using default calibration - YOU SHOULD CALIBRATE YOUR CAMERA for better accuracy
-    camera_info_url: "package://camera_launch/config/default_calibration.yaml"
+    # camera_info_url is set by camera.launch.py: it uses config/camera_info.yaml if present.
+    # Generate it with: python3 scripts/apply_calibration.py <ost.yaml>
 
     # ── Topic remapping (handled in launch, but defaults listed here) ──
     # image_raw  → /camera/image_raw
